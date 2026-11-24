@@ -13,6 +13,7 @@ This document illustrates the operational workflows governing the procurement li
 5. [Workflow 5: Delivery & Goods Received Notes (GRN)](#workflow-5-delivery--goods-received-notes-grn)
 6. [Workflow 6: Commercial Dispute Resolution](#workflow-6-commercial-dispute-resolution)
 7. [Workflow 7: Supplier Onboarding & AI KYC Verification](#workflow-7-supplier-onboarding--ai-kyc-verification)
+8. [Workflow 8: Public AI Support & Trade Inquiries (Zero-Leakage)](#workflow-8-public-ai-support--trade-inquiries-zero-leakage)
 
 ---
 
@@ -168,7 +169,7 @@ sequenceDiagram
 
 ---
 
-### Workflow 7: Supplier Onboarding & AI KYC Verification
+### Workflow 7: Supplier Onboarding, AI KYC & Administrative Governance
 
 ```mermaid
 sequenceDiagram
@@ -176,22 +177,83 @@ sequenceDiagram
     actor Applicant as New Supplier
     actor Admin as Compliance Admin
     participant App as BidSync Web App
-    participant Gemini as Google Gemini Multimodal AI
     participant Platform as BidSync Core Platform
+    participant Gemini as Google Gemini Multimodal AI
     participant DB as Persistence Layer
 
-    Applicant->>App: Submit Registration & Attach Business Certificate
-    Platform->>Gemini: Send Document for Multimodal Inspection
-    Gemini->>Gemini: OCR & Semantic Legal Entity Extraction
-    Gemini-->>Platform: Return Extracted Data, Validity & Recommendation
-    Platform->>Platform: Cross-Validate Ground Truth with Applicant Form
-    Platform->>DB: Save Applicant with AI Compliance Dossier
+    Note over Applicant, DB: Phase 1: Non-Blocking Registration (< 1s Response)
+    Applicant->>App: Submit Signup & Attach Business Certificate
+    App->>Platform: POST /api/auth/signup (with multipart file)
+    Platform->>Platform: Persist Certificate to Storage Vault
+    Platform->>DB: Save User (approvalStatus: 'pending', isEmailVerified: false)
+    Platform-->>App: Registration Success (< 1s Latency)
+    App-->>Applicant: Display Activation Prompt ("Check Your Inbox")
 
-    Admin->>App: Open Compliance Dashboard & Review Dossier
+    Note over Platform, DB: Phase 2: Asynchronous AI KYC Verification
+    par Asynchronous Processing
+        Platform->>Platform: Deliver Verification Link via Resend REST API
+    and Background Multimodal Inspection
+        Platform->>Gemini: Inspect Certificate Buffer (Multimodal Flash)
+        Gemini->>Gemini: Extract Legal Name, BRN/TIN & Validity
+        Gemini-->>Platform: Structured Compliance Recommendations
+        Platform->>DB: Update User record with AI Verification Dossier
+    end
+
+    Note over Admin, DB: Phase 3: Administrative Governance Lifecycle
+    Admin->>App: Open Compliance Desk (pendingApprovals badge: 1)
     Admin->>App: Review AI Findings & Original Document Side-by-Side
-    Admin->>Platform: Approve Applicant & Grant Verified Supplier Badge
-    Platform->>DB: Update Supplier Status to Verified
-    Platform-->>Applicant: Welcome Alert: Account Verified
+
+    alt Approved
+        Admin->>Platform: PUT /api/admin/users/:id/approve
+        Platform->>DB: Set approvalStatus = 'approved', isApproved = true
+        Platform->>DB: Record Tamper-Evident Audit Entry
+        Platform-->>Admin: Decrement pendingApprovals Counter
+        Platform-->>Applicant: Notify: Account Verified & Supplier Badge Granted
+    else Rejected
+        Admin->>App: Click Reject & Enter Mandatory Rejection Reason
+        Admin->>Platform: PUT /api/admin/users/:id/reject { reason }
+        Platform->>DB: Set approvalStatus = 'rejected', rejectionReason = reason
+        Platform->>DB: Record Tamper-Evident Audit Entry
+        Platform-->>Admin: Decrement pendingApprovals Counter & Move to Rejected Accounts Desk
+        Note over Admin, DB: Later Re-Approval (Optional)
+        Admin->>Platform: Click Re-Approve from Rejected Desk
+        Platform->>DB: Clear rejectionReason & Set approvalStatus = 'approved'
+        Platform-->>Applicant: Notify: Account Re-Approved
+    end
+```
+
+---
+
+### Workflow 8: Public AI Support & Trade Inquiries (Zero-Leakage)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Visitor as Visitor / Guest / Prospective Vendor (No Auth Required)
+    participant Widget as Floating Neo-Brutalist Chatbot
+    participant Gateway as Express Gateway (/api/chatbot)
+    participant DB as MongoDB Atlas Cluster
+    participant Sanitizer as Zero-Leakage Sanitizer
+    participant Gemini as Google Gemini Free AI Engine
+
+    Visitor->>Widget: Ask question ("What vehicle spare parts tenders are open?")
+    Widget->>Gateway: POST /api/chatbot/message { message }
+    Gateway->>DB: Query Active Public RFQs (status: 'open', isPrivate: false)
+    DB-->>Gateway: Active Tender Records
+
+    Gateway->>Sanitizer: Strip Bids, Internal Estimates, Cryptographic Keys & Private Budgets
+    Sanitizer-->>Gateway: Sanitized Public Trade Catalog
+
+    alt Gemini API Operational
+        Gateway->>Gemini: Prompt with User Message + Sanitized Catalog Context
+        Gemini-->>Gateway: Context-Grounded Answer with Tender Highlights
+    else API Quota Exceeded / Unavailable
+        Gateway->>Gateway: Execute Offline Semantic Keyword Matching Engine
+        Gateway-->>Gateway: Matched Public Tender Summary
+    end
+
+    Gateway-->>Widget: Natural Language Response + Safe Markdown Links
+    Widget-->>Visitor: Display Answer with [View Tender](/tenders) Links
 ```
 
 ---

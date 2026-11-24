@@ -9,10 +9,11 @@ This document presents the high-level system architecture, core design patterns,
 1. [High-Level System Topology](#1-high-level-system-topology)
 2. [Cryptographic Sealed Bidding Subsystem](#2-cryptographic-sealed-bidding-subsystem)
 3. [Google Gemini Multimodal AI KYC Engine](#3-google-gemini-multimodal-ai-kyc-engine)
-4. [Statistical Evaluation & Anomaly Detection Model](#4-statistical-evaluation--anomaly-detection-model)
-5. [Real-Time WebSocket Architecture](#5-real-time-websocket-architecture)
-6. [Tamper-Evident Audit Ledger](#6-tamper-evident-audit-ledger)
-7. [Data Architecture & Schemas](#7-data-architecture--schemas)
+4. [Google Gemini AI Customer Support & Public Trade Assistant](#4-google-gemini-ai-customer-support--public-trade-assistant)
+5. [Statistical Evaluation & Anomaly Detection Model](#5-statistical-evaluation--anomaly-detection-model)
+6. [Real-Time WebSocket Architecture](#6-real-time-websocket-architecture)
+7. [Tamper-Evident Audit Ledger](#7-tamper-evident-audit-ledger)
+8. [Data Architecture & Schemas](#8-data-architecture--schemas)
 
 ---
 
@@ -25,6 +26,7 @@ flowchart TD
     subgraph ClientTier["Client Layer"]
         UI["React 19 Single Page Application"]
         PWA["PWA Service Worker & Offline Caching"]
+        ChatWidget["Public AI Support Assistant"]
     end
 
     subgraph APITier["API Gateway & Real-Time Layer"]
@@ -36,6 +38,7 @@ flowchart TD
     subgraph ServiceTier["Core Processing Engines"]
         CryptoEngine["Cryptographic Sealed Bidding Subsystem"]
         GeminiKYC["Google Gemini Multimodal AI Engine"]
+        GeminiChat["Gemini AI Trade Support Engine"]
         AIAnomaly["Statistical Anomaly & Scorecard Engine"]
         ContractEngine["Contract Lifecycle & GRN Engine"]
         DisputeDesk["Commercial Arbitration Desk"]
@@ -51,11 +54,13 @@ flowchart TD
 
     UI <--> Express
     UI <--> SocketServer
+    ChatWidget <--> Express
     PWA <--> UI
 
     Express <--> Security
     Express <--> CryptoEngine
     Express <--> GeminiKYC
+    Express <--> GeminiChat
     Express <--> AIAnomaly
     Express <--> ContractEngine
     Express <--> DisputeDesk
@@ -64,6 +69,7 @@ flowchart TD
 
     CryptoEngine <--> Mongo
     GeminiKYC <--> Mongo
+    GeminiChat <--> Mongo
     ContractEngine <--> Mongo
     DisputeDesk <--> Mongo
     Express <--> HashLedger
@@ -148,7 +154,48 @@ flowchart TD
 
 ---
 
-## 4. Statistical Evaluation & Anomaly Detection Model
+## 4. Google Gemini AI Customer Support & Public Trade Assistant
+
+BidSync features a 24/7 public AI customer support and tender exploration assistant powered by Google Gemini Free API (`@google/generative-ai`), engineered with institutional zero-leakage data protections:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Visitor as Visitor / Supplier (No Auth Required)
+    participant UI as Neo-Brutalist Chatbot Widget
+    participant Gateway as Express Gateway (/api/chatbot)
+    participant DB as MongoDB Atlas Cluster
+    participant Sanitizer as Zero-Leakage Sanitizer
+    participant Gemini as Google Gemini Flash API
+
+    Visitor->>UI: "What medical tenders are open right now?"
+    UI->>Gateway: POST /api/chatbot/message { message }
+    Gateway->>DB: Query Active Public RFQs (status: 'open', isPrivate: false)
+    DB-->>Gateway: Raw Tender Documents
+    Gateway->>Sanitizer: Strip Bids, Internal Estimates, Secret Keys & Hidden Budgets
+    Sanitizer-->>Gateway: Sanitized Public Catalog Context
+    
+    alt Gemini API Available
+        Gateway->>Gemini: Prompt with Sanitized Context + Grounding Rules
+        Gemini-->>Gateway: Natural Language Guidance & Tender Recommendations
+    else API Unavailable / Quota Exceeded
+        Gateway->>Gateway: Execute Offline Semantic Keyword Matching Engine
+        Gateway-->>Gateway: Structured Fallback Summary
+    end
+
+    Gateway-->>UI: Response with Safe Markdown Deep-Links
+    UI-->>Visitor: Instant Answer with [View Tender](/tenders) Links
+```
+
+### Zero-Leakage Privacy Guarantees
+- **Public Exploration Without Authentication:** Any prospective vendor or guest can browse open tenders freely from any page without registering or logging in.
+- **Strict Data Sanitization:** Internal buyer budgets (unless marked `isBudgetPublic: true`), buyer estimated item prices, competitor bid amounts, encrypted envelopes, and user contact details are strictly excluded before AI prompts are assembled.
+- **Graceful Offline Fallback:** If `GEMINI_API_KEY` is not configured or upstream quotas are reached, an integrated semantic parser matches questions against live MongoDB records automatically.
+- **Administrative Route Suppression:** The chatbot widget automatically unmounts on `/admin*` routes, maintaining pristine focus for compliance officers.
+
+---
+
+## 5. Statistical Evaluation & Anomaly Detection Model
 
 Upon unsealing, BidSync's analytical engine processes bids through objective statistical models:
 
@@ -159,7 +206,7 @@ Upon unsealing, BidSync's analytical engine processes bids through objective sta
 
 ---
 
-## 5. Real-Time WebSocket Architecture
+## 6. Real-Time WebSocket Architecture
 
 Powered by **Socket.io 4**, BidSync provides zero-latency updates across isolated channel rooms:
 
@@ -169,7 +216,7 @@ Powered by **Socket.io 4**, BidSync provides zero-latency updates across isolate
 
 ---
 
-## 6. Tamper-Evident Audit Ledger
+## 7. Tamper-Evident Audit Ledger
 
 BidSync incorporates a blockchain-inspired SHA-256 hash-chained audit ledger:
 - Each administrative and procurement action links cryptographically to the hash of the preceding record.
@@ -178,7 +225,7 @@ BidSync incorporates a blockchain-inspired SHA-256 hash-chained audit ledger:
 
 ---
 
-## 7. Data Architecture & Schemas
+## 8. Data Architecture & Schemas
 
 The database structure in MongoDB Atlas supports the end-to-end procurement lifecycle:
 
@@ -200,6 +247,11 @@ erDiagram
 
     AuditLog ||--|| AuditLog : "cryptographically chains to prior"
 ```
+
+### Key Schema Governance Enhancements
+- **Multi-State Applicant Lifecycle (`User`):** Incorporates explicit `approvalStatus` (`pending`, `approved`, `rejected`) and documented `rejectionReason`, driving real-time `pendingApprovals` counter decrements across administrative consoles.
+- **Envelope Encryption Metadata (`RFQ` & `Bid`):** Stores public RSA keypairs, encrypted AES escrow blocks, DEKs, and SHA-256 non-repudiation bid receipts.
+- **Immutable Goods Received Notes (`Contract`):** Preserves physical inspection sign-offs, carrier waybill tracking, and cryptographic timestamps.
 
 ---
 

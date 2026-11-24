@@ -7,6 +7,7 @@
 <p align="center">
   <a href="https://bidsync.online"><img src="https://img.shields.io/badge/🌐_Live-bidsync.online-10B981?style=for-the-badge" alt="Live"/></a>
   <a href="https://github.com/monithishanka/BidSync"><img src="https://img.shields.io/badge/GitHub-BidSync-181717?style=for-the-badge&logo=github" alt="GitHub"/></a>
+  <img src="https://img.shields.io/badge/Tests-49%20Passing-brightgreen?style=for-the-badge" alt="49 Passing Tests"/>
   <img src="https://img.shields.io/badge/Security-Cryptographic%20Sealed%20Bidding-blue?style=for-the-badge" alt="Security"/>
   <img src="https://img.shields.io/badge/AI-Google%20Gemini%20Multimodal-8E24AA?style=for-the-badge" alt="Google Gemini AI"/>
   <img src="https://img.shields.io/badge/Ledger-Tamper--Evident%20Audit%20Trail-F59E0B?style=for-the-badge" alt="Audit Ledger"/>
@@ -64,9 +65,11 @@ Traditional corporate and public-sector procurement processes face four pervasiv
 
 1. **Zero-Knowledge Cryptographic Sealed Bidding:** Financial proposals are protected via asymmetric envelope encryption. Neither buyers, competitors, nor system administrators can inspect bid prices until the tender deadline officially expires.
 2. **AI Statistical Anomaly & Dumping Detector:** Automated statistical models evaluate bids upon unsealing to detect predatory dumping, budget overruns, and collusive price collisions.
-3. **Google Gemini Multimodal AI KYC:** Intelligent multimodal OCR and semantic extraction automatically inspect business registration certificates, cross-verifying entity identities and scoring fraud risks.
+3. **Google Gemini Multimodal AI KYC:** Intelligent multimodal OCR and semantic extraction automatically inspect business registration certificates, cross-verifying entity identities and scoring fraud risks with non-blocking registration.
 4. **Post-Award Fulfillment & Goods Received Notes (GRN):** Full lifecycle management with performance milestones, delivery tracking, physical inspection logs, and verifiable GRN certificates.
 5. **Tamper-Evident Hash-Chained Audit Ledger:** Blockchain-inspired cryptographic chaining ensures any unauthorized log alterations are mathematically detected.
+6. **Google Gemini AI Public Trade Assistant:** Prospective suppliers and guests explore active public tenders and platform policies 24/7 without authentication, backed by strict zero-secret leakage sanitization and offline fallback parsing.
+7. **Applicant Governance & Supplier Re-Approval Desk:** Multi-state applicant lifecycle tracking (`pending`, `approved`, `rejected`), documented rejection reasons, reactive `pendingApprovals` badge updates, and on-demand supplier restoration.
 
 ---
 
@@ -78,6 +81,7 @@ flowchart TD
         C1["React 19 SPA (Vite 7)"]
         C2["Progressive Web App (Offline Capabilities)"]
         C3["Neo-Brutalist Visual Design System"]
+        C4["Floating Neo-Brutalist AI Chatbot"]
     end
 
     subgraph Gateway["Communication & Real-Time Gateway"]
@@ -94,6 +98,7 @@ flowchart TD
         E5["Commercial Dispute Resolution & Arbitration Desk"]
         E6["Streaming PDF & RFC 4180 CSV Data Engine"]
         E7["Automated Background Cron Scheduler"]
+        E8["Google Gemini AI Public Trade Assistant"]
     end
 
     subgraph Data["Persistence & Storage Layer"]
@@ -159,14 +164,16 @@ flowchart LR
 | **Progressive Web App**| **Service Workers & Manifest** | Standalone installation and offline view caching |
 | **Backend Runtime** | **Node.js** + **Express 4** | High-concurrency RESTful API architecture |
 | **Real-Time Engine** | **Socket.io 4** | Live auction countdowns, bid counters, and instant notifications |
-| **AI Document Engine** | **Google Gemini Multimodal Flash** | Automated OCR and legal entity verification on KYC certificates |
+| **AI Document KYC** | **Google Gemini Multimodal Flash** | Automated OCR and legal entity verification on KYC certificates |
+| **AI Public Trade Assistant** | **Google Gemini Free API** | 24/7 public tender inquiry support with zero secret leakage |
 | **Database** | **MongoDB Atlas** + **Mongoose 8** | Flexible document storage with atomic sequence numbering |
 | **Cryptography** | **Node.js native `crypto`** | RSA-2048 and AES-256 envelope encryption, SHA-256 non-repudiation |
 | **Audit Ledger** | **SHA-256 Hash Chaining** | Tamper-evident administrative compliance logging |
 | **Cloud Storage** | **AWS S3 / Cloudflare R2** | Secure cloud storage for tender specifications and KYC files |
 | **Document Export** | **PDFKit & CSV Engine** | Streaming vector PDF statements and RFC 4180 CSV exports |
-| **Email Verification** | **Nodemailer (SMTP Relay)** | Cryptographic email verification for spam and fraud prevention |
+| **Email Delivery Engine** | **Resend REST API (HTTPS) + Nodemailer** | High-reliability email delivery with automatic test-mode fallback |
 | **Background Cron** | **`node-cron`** | Automated tender unsealing ceremonies and state transitions |
+| **Automated Testing** | **Vitest 5 + Supertest 7** | 49 passing automated unit and integration tests across 10 suites |
 
 ---
 

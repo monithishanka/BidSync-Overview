@@ -40,6 +40,10 @@ Procurement platforms manage high-value transactions and sensitive commercial da
 ├────────────────────────────┼───────────────────────────────────────────┤
 │ 5. Session Hijacking       │ Hardened HTTP cookies with strict policy  │
 │    & Impersonation         │ enforcement and rate limiting.            │
+├────────────────────────────┼───────────────────────────────────────────┤
+│ 6. AI Secret Leakage &     │ Zero-Leakage Sanitization Pipeline: Bids, │
+│    Data Extraction         │ internal estimates, and private budgets   │
+│                            │ are excluded before prompt construction.  │
 └────────────────────────────┴───────────────────────────────────────────┘
 ```
 
@@ -84,14 +88,17 @@ Access to platform operations is strictly partitioned across distinct user roles
 | **File Commercial Disputes** | ❌ | ✅ | ✅ | ❌ |
 | **Arbitrate & Settle Disputes** | ❌ | ❌ | ❌ | ✅ |
 | **Review KYC Verifications** | ❌ | ❌ | ❌ | ✅ |
+| **Reject Applicant with Reason** | ❌ | ❌ | ❌ | ✅ |
+| **Re-Approve Rejected Accounts** | ❌ | ❌ | ❌ | ✅ |
 | **Verify Audit Ledger Integrity** | ❌ | ❌ | ❌ | ✅ |
+| **Interact with AI Support Assistant** | ✅ | ✅ | ✅ | ❌ *(Suppressed on /admin)* |
 
 ---
 
 ## 5. Application Defense-in-Depth
 
 - **HTTP Security Headers:** Integrated Helmet configuration enforcing strict CSP, frameguard protection, and transport security.
-- **API Rate Limiting:** Tiered rate limiters protect authentication and sensitive endpoints from brute-force attempts and scraping.
+- **API Rate Limiting:** Tiered rate limiters protect authentication, sensitive endpoints, and public chatbot endpoints (`/api/chatbot/message`) from brute-force attempts and scraping.
 - **Authentication Hardening:** Password hashing using standard bcrypt with salt rounds, accompanied by session storage in dedicated database stores.
 - **Input Validation:** Strict type-checking, payload sanitization, and whitelist-based file upload filtering.
 
@@ -100,9 +107,18 @@ Access to platform operations is strictly partitioned across distinct user roles
 ## 6. AI Data Privacy & Integrity Standards
 
 BidSync's AI-assisted features adhere to strict institutional data governance:
-- **Ephemeral Processing:** Uploaded KYC certificates are processed in memory and never stored in unsecured temporary locations.
+
+### Multimodal KYC Document Verification
+- **Ephemeral In-Memory Processing:** Uploaded KYC certificates are processed in memory and never stored in unsecured temporary locations.
 - **Privacy Protections:** Document analysis is performed solely for entity extraction and compliance verification.
 - **Schema Validation:** Strict structured output constraints prevent prompt injection vulnerabilities from malicious document contents.
+
+### Public Trade Assistant Zero-Leakage Architecture
+- **Strict Data Sanitization:** The retrieval pipeline queries only active public RFQs (`status: 'open', isPrivate: false`).
+- **Complete Confidential Exclusion:** Internal buyer estimated unit prices, submitted bids, competitor identities, user emails, and cryptographic keys are strictly excluded from AI prompts and offline search indices.
+- **Concealed Buyer Budgets:** Commercial budgets are withheld unless the procuring entity explicitly configured `isBudgetPublic: true`.
+- **System Prompt Guardrails:** System prompts instruct the LLM to strictly decline attempts to extract internal server states, commercial estimates, or private credentials.
+- **Administrative Route Suppression:** The AI chatbot widget unmounts automatically on all `/admin*` routes to protect administrative dashboards from distraction and unintended interactions.
 
 ---
 
