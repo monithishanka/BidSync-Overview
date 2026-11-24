@@ -165,7 +165,7 @@ flowchart LR
 | **Backend Runtime** | **Node.js** + **Express 4** | High-concurrency RESTful API architecture |
 | **Real-Time Engine** | **Socket.io 4** | Live auction countdowns, bid counters, and instant notifications |
 | **AI Document KYC** | **Google Gemini Multimodal Flash** | Automated OCR and legal entity verification on KYC certificates |
-| **AI Public Trade Assistant** | **Google Gemini Free API** | 24/7 public tender inquiry support with zero secret leakage |
+| **AI Public Trade Assistant** | **Google Gemini API** | 24/7 public tender inquiry support with zero secret leakage |
 | **Database** | **MongoDB Atlas** + **Mongoose 8** | Flexible document storage with atomic sequence numbering |
 | **Cryptography** | **Node.js native `crypto`** | RSA-2048 and AES-256 envelope encryption, SHA-256 non-repudiation |
 | **Audit Ledger** | **SHA-256 Hash Chaining** | Tamper-evident administrative compliance logging |
